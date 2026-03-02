@@ -1,0 +1,5 @@
+kafka-python
+pydantic
+faker
+pytest
+pyyaml
