@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  kafka:
+    image: redpandadata/redpanda:latest
+    container_name: fraud-kafka
+    ports:
+      - "9092:9092"
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 512M
+      - --kafka-addr 0.0.0.0:9092
+      - --advertise-kafka-addr localhost:9092
