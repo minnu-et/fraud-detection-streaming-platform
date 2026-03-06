@@ -1,6 +1,9 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import *
+from src.detection.rules import apply_basic_rules
+from src.streaming.delta_writer import write_to_delta
+
 
 TRANSACTION_SCHEMA = StructType([
     StructField("transaction_id", StringType()),
@@ -20,10 +23,14 @@ def create_spark_session():
     return SparkSession.builder \
         .appName("FraudDetectionStreaming") \
         .config("spark.jars.packages",
-                "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1") \
+                "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1,"
+                "io.delta:delta-core_2.12:2.4.0") \
+        .config("spark.sql.extensions", 
+                "io.delta.sql.DeltaSparkSessionExtension") \
+        .config("spark.sql.catalog.spark_catalog", 
+                "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
         .config("spark.sql.shuffle.partitions", "2") \
         .getOrCreate()
-
 def read_from_kafka(spark):
     return spark.readStream \
         .format("kafka") \
@@ -43,13 +50,17 @@ def main():
     spark.sparkContext.setLogLevel("WARN")
     
     df = read_from_kafka(spark)
-    
-    query = df.writeStream \
-        .format("console") \
-        .option("truncate", False) \
-        .start()
-    
-    query.awaitTermination()
+    df = apply_basic_rules(df)    
+    BASE_PATH = "/home/minnu/Projects/fraud-detection-streaming-platform/data"
+
+    query = write_to_delta(
+        df,
+        checkpoint_path=f"{BASE_PATH}/checkpoints/transactions",
+        output_path=f"{BASE_PATH}/delta/transactions"
+    )
+
+    query.awaitTermination()    
+
 
 if __name__ == "__main__":
     main()
