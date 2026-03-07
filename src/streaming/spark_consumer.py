@@ -3,6 +3,7 @@ from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import *
 from src.detection.rules import apply_basic_rules
 from src.streaming.delta_writer import write_to_delta
+from src.detection.rules import apply_velocity_rule
 
 
 TRANSACTION_SCHEMA = StructType([
@@ -14,7 +15,7 @@ TRANSACTION_SCHEMA = StructType([
     StructField("merchant_category", StringType()),
     StructField("country", StringType()),
     StructField("city", StringType()),
-    StructField("timestamp", StringType()),
+    StructField("timestamp", TimestampType()),
     StructField("is_fraud", BooleanType()),
     StructField("fraud_type", StringType()),
 ])
@@ -50,16 +51,28 @@ def main():
     spark.sparkContext.setLogLevel("WARN")
     
     df = read_from_kafka(spark)
-    df = apply_basic_rules(df)    
+    df = apply_basic_rules(df)
+    
     BASE_PATH = "/home/minnu/Projects/fraud-detection-streaming-platform/data"
-
-    query = write_to_delta(
+    
+    # Query 1: write all transactions to Delta Lake
+    query1 = write_to_delta(
         df,
         checkpoint_path=f"{BASE_PATH}/checkpoints/transactions",
         output_path=f"{BASE_PATH}/delta/transactions"
     )
+    
+    # Query 2: velocity fraud alerts
 
-    query.awaitTermination()    
+    velocity_df = apply_velocity_rule(df)
+    
+    query2 = velocity_df.writeStream \
+        .format("console") \
+        .option("truncate", False) \
+        .outputMode("update") \
+        .start()
+    
+    query1.awaitTermination()
 
 
 if __name__ == "__main__":
