@@ -48,8 +48,8 @@ def read_from_kafka(spark):
             from_json(col("value").cast("string"),
                       TRANSACTION_SCHEMA).alias("data")
         ) \
-        .select("data.*")
-
+        .select("data.*")\
+        .filter(col("transaction_id").isNotNull())
 
 def main():
     print("Starting Spark Streaming consumer...")
