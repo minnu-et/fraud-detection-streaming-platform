@@ -1,17 +1,18 @@
-from src.generator.transaction_generator import TransactionGenerator
+from src.generator.transaction_generator import TransactionGenerator, Transaction
 from src.generator.kafka_producer import TransactionProducer
+from src.utils.config import load_config
 import random
 import time
 from datetime import datetime
-from src.generator.transaction_generator import Transaction
-
 
 def main():
-    generator = TransactionGenerator(num_users=100)
-    producer = TransactionProducer()
-
+    config = load_config()
+    generator = TransactionGenerator(
+        num_users=config["generator"]["num_users"]
+    )
+    producer = TransactionProducer(config=config)
+    
     print("Starting transaction stream... Press Ctrl+C to stop")
-
     # Send one fraud transaction manually for testing
 
     test_fraud = Transaction(
@@ -56,7 +57,7 @@ def main():
             user_id = random.choice(generator.users)
             transaction = generator.generate_normal(user_id)
             producer.send(transaction)
-            time.sleep(0.5)  # one transaction every 0.5 seconds
+            time.sleep(config["generator"]["transaction_interval"]) #one transaction at every transaction_interval
     except KeyboardInterrupt:
         print("\nStopping generator...")
         producer.flush()

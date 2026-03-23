@@ -1,22 +1,26 @@
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
+from src.utils.config import load_config
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 
 class TransactionProducer:
-    def __init__(self, bootstrap_servers: str = "localhost:9092",
-                 topic: str = "transactions",
-                 max_retries: int = 3):
-        self.topic = topic
-        self.max_retries = max_retries
+    def __init__(self, config: dict = None):
+        if config is None:
+            config = load_config()
+        
+        kafka_config = config["kafka"]
+        self.topic = kafka_config["topic"]
+        self.max_retries = kafka_config["max_retries"]
+        
         self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
+            bootstrap_servers=kafka_config["bootstrap_servers"],
             value_serializer=lambda v: json.dumps(v, default=str).encode("utf-8"),
             key_serializer=lambda k: k.encode("utf-8") if k else None,
-            retries=max_retries,
-            acks='all'  # wait for all replicas to acknowledge
+            retries=self.max_retries,
+            acks='all'
         )
 
     def send(self, transaction) -> bool:
@@ -26,7 +30,7 @@ class TransactionProducer:
                 key=transaction.user_id,
                 value=transaction.model_dump()
             )
-            future.get(timeout=10)  # wait for confirmation
+            future.get(timeout=10)
             print(f"Sent: {transaction.transaction_id} | "
                   f"user={transaction.user_id} | "
                   f"amount={transaction.amount}")
