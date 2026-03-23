@@ -2,9 +2,8 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from src.utils.config import load_config
 import json
-import logging
-
-logger = logging.getLogger(__name__)
+from src.utils.logger import get_logger
+logger = get_logger(__name__)
 
 class TransactionProducer:
     def __init__(self, config: dict = None):
@@ -31,9 +30,9 @@ class TransactionProducer:
                 value=transaction.model_dump()
             )
             future.get(timeout=10)
-            print(f"Sent: {transaction.transaction_id} | "
-                  f"user={transaction.user_id} | "
-                  f"amount={transaction.amount}")
+            logger.info(f"Sent: {transaction.transaction_id} | "
+            f"user={transaction.user_id} | "
+            f"amount={transaction.amount}")            
             return True
         except KafkaError as e:
             logger.error(f"Failed to send transaction {transaction.transaction_id}: {e}")

@@ -1,3 +1,5 @@
+from src.utils.logger import get_logger
+logger = get_logger(__name__)
 from src.generator.transaction_generator import TransactionGenerator, Transaction
 from src.generator.kafka_producer import TransactionProducer
 from src.utils.config import load_config
@@ -11,8 +13,8 @@ def main():
         num_users=config["generator"]["num_users"]
     )
     producer = TransactionProducer(config=config)
-    
-    print("Starting transaction stream... Press Ctrl+C to stop")
+
+    logger.info("Starting transaction stream...")
     # Send one fraud transaction manually for testing
 
     test_fraud = Transaction(
@@ -28,12 +30,11 @@ def main():
         is_fraud=False)
 
     producer.send(test_fraud)
-    print("Sent test fraud transaction!")
+    logger.info("Sent test fraud transaction!")
     # First establish USR_0001's home country in state
     test_normal = generator.generate_normal("USR_0001")
     producer.send(test_normal)
-    print(f"Sent normal transaction for USR_0001 from {test_normal.country}")
-
+    logger.info(f"Sent normal transaction...")
     time.sleep(3)  # wait for Spark to process it
 
     # Now send from different country to trigger geo anomaly
@@ -51,7 +52,7 @@ def main():
         is_fraud=False
     )
     producer.send(test_geo)
-    print("Sent test geo anomaly transaction!")
+    logger.info("Sent test geo anomaly transaction!")
     try:
         while True:
             user_id = random.choice(generator.users)
@@ -59,10 +60,9 @@ def main():
             producer.send(transaction)
             time.sleep(config["generator"]["transaction_interval"]) #one transaction at every transaction_interval
     except KeyboardInterrupt:
-        print("\nStopping generator...")
+        logger.info("Stopping generator...")
         producer.flush()
-        print("Done.")
-
+        logger.info("Done.")
 
 if __name__ == "__main__":
     main()
