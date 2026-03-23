@@ -73,11 +73,12 @@ def main():
     # Query 2: velocity fraud alerts
 
     velocity_df = apply_velocity_rule(df)
-    query2 = velocity_df.writeStream \
-        .format("console") \
-        .option("truncate", False) \
-        .outputMode("update") \
-        .start()
+    query2 = write_to_delta(
+    velocity_df,
+    checkpoint_path=f"{BASE_PATH}/checkpoints/velocity_alerts",
+    output_path=f"{BASE_PATH}/delta/velocity_alerts",
+    mode="append"
+    )
 
     query1.awaitTermination()
 
