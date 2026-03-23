@@ -1,5 +1,10 @@
-kafka-python
-pydantic
-faker
-pytest
-pyyaml
+delta-spark==2.4.0
+kafka-python==2.3.0
+pandas==3.0.1
+pyarrow==23.0.1
+pydantic==2.12.5
+pydantic_core==2.41.5
+pyspark==3.4.1
+pytest==9.0.2
+faker==40.5.1
+pyyaml==6.0.3
