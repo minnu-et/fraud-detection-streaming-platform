@@ -24,6 +24,7 @@ class Transaction(BaseModel):
     transaction_id: str
     user_id: str
     amount: float
+    user_avg_amount: float = 0.0
     currency: str
     merchant_id: str
     merchant_category: str
@@ -51,6 +52,7 @@ class TransactionGenerator:
         amount = round(random.gauss(profile["avg_amount"],
                        profile["avg_amount"] * 0.3), 2)
         amount = max(1.0, amount)
+        user_avg_amount=profile["avg_amount"]
 
         return Transaction(
             transaction_id=str(uuid.uuid4()),
@@ -62,5 +64,6 @@ class TransactionGenerator:
             country=country,
             city=random.choice(COUNTRY_CITIES[country]),
             timestamp=datetime.now(),
-            is_fraud=False
+            is_fraud=False,
+            user_avg_amount=profile["avg_amount"]
         )

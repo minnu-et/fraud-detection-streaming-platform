@@ -47,3 +47,15 @@ def apply_geo_anomaly_rule(df: DataFrame,
         when(col("country").isin(suspicious_countries),
              "high_risk_country").otherwise(None)
     )
+def apply_amount_spike_rule(df: DataFrame, multiplier: float = 3.0) -> DataFrame:
+    """
+    Flag transactions where amount is more than 3x the user's average.
+    """
+    return df.withColumn(
+        "amount_spike_flag",
+        when(col("amount") > col("user_avg_amount") * multiplier, True).otherwise(False)
+    ).withColumn(
+        "amount_spike_reason",
+        when(col("amount") > col("user_avg_amount") * multiplier,
+             "amount_spike_3x_average").otherwise(None)
+    )

@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import *
-from src.detection.rules import apply_basic_rules, apply_velocity_rule, apply_geo_anomaly_rule
+from src.detection.rules import apply_basic_rules, apply_velocity_rule, apply_geo_anomaly_rule, apply_amount_spike_rule
 from src.streaming.delta_writer import write_to_delta
 from pyspark.sql.streaming.state import GroupStateTimeout
 
@@ -18,6 +18,7 @@ TRANSACTION_SCHEMA = StructType([
     StructField("timestamp", TimestampType()),
     StructField("is_fraud", BooleanType()),
     StructField("fraud_type", StringType()),
+    StructField("user_avg_amount", DoubleType()),
 ])
 
 
@@ -58,6 +59,7 @@ def main():
     df = read_from_kafka(spark)
     df = apply_basic_rules(df)
     df = apply_geo_anomaly_rule(df)
+    df = apply_amount_spike_rule(df)
 
     BASE_PATH = "/home/minnu/Projects/fraud-detection-streaming-platform/data"
 
@@ -71,7 +73,6 @@ def main():
     # Query 2: velocity fraud alerts
 
     velocity_df = apply_velocity_rule(df)
-
     query2 = velocity_df.writeStream \
         .format("console") \
         .option("truncate", False) \

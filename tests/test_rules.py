@@ -2,6 +2,7 @@ import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from src.detection.rules import apply_basic_rules, apply_geo_anomaly_rule
+from pyspark.sql.functions import col
 
 
 @pytest.fixture(scope="session")
@@ -60,3 +61,14 @@ def test_geo_anomaly_safe_country(spark):
     row = result.collect()[0]
     assert row["geo_flag"] == False
     assert row["geo_reason"] is None
+
+def test_amount_spike_flagged(spark):
+    df = create_test_df(spark, [
+        ("T005", "USR_0005", 900.0, "IN"),
+    ])
+    df = df.withColumn("user_avg_amount", 
+                       col("amount").cast("double") / 10)
+    from src.detection.rules import apply_amount_spike_rule
+    result = apply_amount_spike_rule(df)
+    row = result.collect()[0]
+    assert row["amount_spike_flag"] == True
