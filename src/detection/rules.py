@@ -1,5 +1,8 @@
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, when, window, count
+from pyspark.sql.streaming.state import GroupState, GroupStateTimeout
+from pyspark.sql.types import StructType, StructField, StringType, TimestampType, BooleanType
+from datetime import datetime, timedelta
 
 def apply_basic_rules(df: DataFrame) -> DataFrame:
     return df.withColumn(
@@ -30,3 +33,17 @@ def apply_velocity_rule(df, threshold: int = 5, window_duration: str = "5 minute
         )
     
     return velocity_df
+
+def apply_geo_anomaly_rule(df: DataFrame,
+                            suspicious_countries: list = None) -> DataFrame:
+    if suspicious_countries is None:
+        suspicious_countries = ["NG", "RU", "KP", "IR"]
+
+    return df.withColumn(
+        "geo_flag",
+        when(col("country").isin(suspicious_countries), True).otherwise(False)
+    ).withColumn(
+        "geo_reason",
+        when(col("country").isin(suspicious_countries),
+             "high_risk_country").otherwise(None)
+    )
