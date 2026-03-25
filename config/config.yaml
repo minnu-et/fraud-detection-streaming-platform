@@ -13,9 +13,12 @@ paths:
   delta:
     transactions: "delta/transactions"
     velocity_alerts: "delta/velocity_alerts"
+    unified_alerts: "delta/unified_alerts"
   checkpoints:
     transactions: "checkpoints/transactions"
     velocity_alerts: "checkpoints/velocity_alerts"
+    dlq: "checkpoints/dlq"
+    unified_alerts: "checkpoints/unified_alerts"
 
 fraud_rules:
   high_amount_threshold: 1000

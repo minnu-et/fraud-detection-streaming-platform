@@ -21,6 +21,7 @@ def main():
         transaction_id="TEST-FRAUD-001",
         user_id="USR_0001",
         amount=1500.00,
+        user_avg_amount=200.00,
         currency="USD",
         merchant_id="MER_9999",
         merchant_category="electronics",
@@ -43,11 +44,12 @@ def main():
         transaction_id="TEST-GEO-001",
         user_id="USR_0001",
         amount=150.00,
+        user_avg_amount=200.00,
         currency="USD",
         merchant_id="MER_1111",
         merchant_category="online_retail",
-        country="GB",
-        city="London",
+        country="NG",   
+        city="Lagos",
         timestamp=datetime.now(),
         is_fraud=False
     )
