@@ -8,3 +8,4 @@ dist/
 data/
 *.crc
 logs/
+*:Zone.Identifier
