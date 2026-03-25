@@ -4,7 +4,7 @@ I built this to get hands-on with streaming pipelines — my resume was light on
 
 ## Architecture
 
-![Architecture Diagram](docs/architecture.svg)
+![Architecture Diagram](docs/architecture.png)
 
 Transactions flow from a Python generator into Kafka, get picked up by Spark, pass through a fraud rules engine, and land in Delta Lake tables. Bad records (anything that fails JSON parsing) get routed to a DLQ Kafka topic instead of being silently dropped.
 
